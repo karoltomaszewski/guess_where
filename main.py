@@ -68,14 +68,11 @@ class Game:
             click = pygame.mouse.get_pressed()[0]
 
             if self.screen_mgr == "Menu":
-                self.draw_rect((186, 220, 88), (0.5 * self.screen.get_width(), 0.5 * self.screen.get_height()),
-                               (0.25 * self.screen.get_width(), 0.08 * self.screen.get_height()), True)
-                self.draw_text("Let's play", (19, 15, 64), 0.5 * self.screen.get_width(),
-                               0.5 * self.screen.get_height(), True, int(0.045 * self.screen.get_height()))
-                if click and 0.375 * self.screen.get_width() <= mouse[
-                    0] <= 0.625 * self.screen.get_width() and 0.46 * self.screen.get_height() <= mouse[
-                    1] <= 0.54 * self.screen.get_height():
+                # let's play button
+                lets_play_button = Button(game=self, button_color=(186, 220, 88), text_color=(19, 15, 64), x=0.5*self.screen.get_width(), y=0.5*self.screen.get_height(), text="Let's play")
+                if lets_play_button.onclick_method(click, mouse):
                     self.screen_mgr = "Game"
+
             elif self.screen_mgr == "Game":
                 # circle, which change radius during mouse move
                 self.draw_point((235, 77, 75), self.dot.coordinates, int(d.distance(mouse, self.dot.coordinates)),
@@ -92,8 +89,6 @@ class Game:
                     new_points = self.dot.add_points(mouse)
                     self.screen_mgr = "Show_correct"
 
-                    # self.dot.__del__()
-                    # self.dot = d.Dot(self.screen_resolution)
             elif self.screen_mgr == "Show_correct":
                 # correct circle
                 pygame.draw.circle(self.screen, (106, 176, 76), self.dot.coordinates, self.dot.task, width=3)
@@ -110,14 +105,49 @@ class Game:
                 # top menu
                 self.draw_top_menu()
 
+                if click and self.last_click == False:
+                    self.dot.__del__()
+
+                    if statistics.round_of_game < 10:
+                        self.screen_mgr = "Game"
+                        self.dot = d.Dot(self.screen_resolution)
+                    else:
+                        self.screen_mgr = "End of the game"
+            elif self.screen_mgr == "End of the game":
+                self.draw_text(str(statistics.points), (186, 220, 88), 0.5 * self.screen.get_width(),
+                               0.3 * self.screen.get_height(), True, int(0.15 * self.screen.get_height()))
+
+                # Play again button
+                play_again_button = Button(game=self, button_color=(186, 220, 88), text_color=(19, 15, 64), x=0.5*self.screen.get_width(), y=0.6*self.screen.get_height(), text="Play again")
+                if play_again_button.onclick_method(click, mouse):
+                    self.screen_mgr = "Game"
+
+                    statistics.points = 0
+                    statistics.round_of_game = 1
+
             if click:
                 self.last_click = True
             else:
                 self.last_click = False
 
-
             pygame.display.update()
             self.main_clock.tick(60)
+
+
+class Button:
+    def __init__(self, game, button_color, text_color, x, y, text):
+        self.game = game
+        self.x = x
+        self.y = y
+        game.draw_rect(button_color, (x, y),
+                       (0.25 * game.screen.get_width(), 0.08 * game.screen.get_height()), True)
+        game.draw_text(text, text_color, x,
+                       y, True, int(0.045 * game.screen.get_height()))
+
+    def onclick_method(self, click, mouse):
+        if click and self.x - 0.125 * self.game.screen.get_width() <= mouse[0] <= self.x + 0.125 * self.game.screen.get_width() and self.y - 0.04 * self.game.screen.get_height() <= mouse[1] <= self.y + 0.04 * self.game.screen.get_height():
+            return True
+        return False
 
 
 def main():
