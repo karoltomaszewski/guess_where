@@ -6,6 +6,10 @@ from threading import Timer
 
 
 class Game:
+    print(statistics.read_record())
+
+    new_record = False
+
     pygame.init()
     pygame.display.set_caption('Guess where game')
     screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
@@ -69,9 +73,19 @@ class Game:
 
             if self.screen_mgr == "Menu":
                 # let's play button
-                lets_play_button = Button(game=self, button_color=(186, 220, 88), text_color=(19, 15, 64), x=0.5*self.screen.get_width(), y=0.5*self.screen.get_height(), text="Let's play")
+                lets_play_button = Button(game=self, button_color=(186, 220, 88), text_color=(19, 15, 64), x=0.5*self.screen.get_width(), y=0.3*self.screen.get_height(), text="Let's play")
                 if lets_play_button.onclick_method(click, mouse):
                     self.screen_mgr = "Game"
+
+                # quit game button
+                quit_play_button = Button(game=self, button_color=(235, 77, 75), text_color=(19, 15, 64), x=0.5*self.screen.get_width(), y=0.5*self.screen.get_height(), text="Quit the game")
+                if quit_play_button.onclick_method(click, mouse):
+                    pygame.quit()
+                    sys.exit()
+
+                # record
+                self.draw_text(f'Record: {str(statistics.read_record())}', (68, 189, 50), 0.5 * self.screen.get_width(),
+                                   0.65 * self.screen.get_height(), True, int(0.05 * self.screen.get_height()))
 
             elif self.screen_mgr == "Game":
                 # circle, which change radius during mouse move
@@ -113,17 +127,34 @@ class Game:
                         self.dot = d.Dot(self.screen_resolution)
                     else:
                         self.screen_mgr = "End of the game"
+                        if statistics.read_record() < statistics.points:
+                            statistics.new_record(statistics.points)
+                            self.new_record = True
+
             elif self.screen_mgr == "End of the game":
                 self.draw_text(str(statistics.points), (186, 220, 88), 0.5 * self.screen.get_width(),
-                               0.3 * self.screen.get_height(), True, int(0.15 * self.screen.get_height()))
+                               0.35 * self.screen.get_height(), True, int(0.15 * self.screen.get_height()))
 
                 # Play again button
                 play_again_button = Button(game=self, button_color=(186, 220, 88), text_color=(19, 15, 64), x=0.5*self.screen.get_width(), y=0.6*self.screen.get_height(), text="Play again")
                 if play_again_button.onclick_method(click, mouse):
                     self.screen_mgr = "Game"
-
+                    self.new_record = False
                     statistics.points = 0
                     statistics.round_of_game = 1
+
+                # quit game button
+                quit_play_button = Button(game=self, button_color=(235, 77, 75), text_color=(19, 15, 64),
+                                              x=0.5 * self.screen.get_width(), y=0.75 * self.screen.get_height(),
+                                              text="Quit the game")
+
+                if self.new_record:
+                    self.draw_text(f"New record", (186, 220, 88), 0.5 * self.screen.get_width(),
+                                   0.15 * self.screen.get_height(), True, int(0.15 * self.screen.get_height()))
+
+                if quit_play_button.onclick_method(click, mouse):
+                    pygame.quit()
+                    sys.exit()
 
             if click:
                 self.last_click = True
